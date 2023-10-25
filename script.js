@@ -4,8 +4,6 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 size = [1280, 800]
 
-const spaceship = new Image();
-spaceship.src = "./img/spaceship.png"
 
 
 spaceshipWidth = 150;
@@ -20,9 +18,9 @@ sprite.src = './img/boom.png'
 ////////////////////////////////////////////
 
 
-spaceship.onload = function () {
-  ctx.drawImage(spaceship, spaceshipX, spaceshipY, spaceshipWidth,spaceshipWidth)
-}
+// spaceship.onload = function () {
+//   ctx.drawImage(spaceship, spaceshipX, spaceshipY, spaceshipWidth,spaceshipWidth)
+// }
 
 
 ////////////////////////////////////////////
@@ -50,11 +48,12 @@ function background() {
   window.addEventListener('DOMContentLoaded', function () {
     canvas.width = size[0];
     canvas.height = size[1];
+    
     setInterval(draw,10)
 
 
     function draw(){
-    background();
+
     game()
     }
     
@@ -64,7 +63,8 @@ function background() {
 ////////////////////////////////////////////
 
   function game() {
-    spaceship.onload(0, 0);
+
+    background();
 
       window.onkeydown = function(event)
       {
@@ -84,8 +84,8 @@ function background() {
       }
     }
 
-    if (pressedButtons["a"]) spaceshipX -= spaceshipSpeed;
-    if (pressedButtons["d"]) spaceshipX += spaceshipSpeed;
+    if (pressedButtons["a"]) ship.x -= spaceshipSpeed;
+    if (pressedButtons["d"]) ship.x += spaceshipSpeed;
   }
 
   ////////////////////////////////////////////
@@ -122,16 +122,19 @@ function draw_boom(){
 
 
 class Sprite {
+  
     constructor(options) {
         this.ctx = options.ctx;
 
-        this.image = options.image;
+        this.image = new Image();
+        this.image.src = options.imgSrc;
 
         this.frameIndex = 0;
         this.tickCount = 0;
         this.ticksPerFrame = options.ticksPerFrame || 0;
         this.numberOfFrames = options.numberOfFrames || 1;
-
+        this.x = options.x;
+        this.y = options.y;
         this.width = options.width;
         this.height = options.height;
 
@@ -158,8 +161,8 @@ class Sprite {
             0,
             this.width / this.numberOfFrames,
             this.height,
-            0,
-            0,
+            this.x,
+            this.y,
             this.width / this.numberOfFrames,
             this.height
         )
@@ -183,15 +186,13 @@ class Sprite {
 
 
 
-let shipImg = new Image();
-shipImg.src = './img/sprites.png';
 let ship = new Sprite({
   ctx: canvas.getContext('2d'),
-  image: shipImg,
+  imgSrc: './img/sprites.png',
   width: 200,
   height: 80,
-  x: 100,
-  y: 100,
+  x: spaceshipX,
+  y: spaceshipY,
   numberOfFrames: 4,
   ticksPerFrame: 8,
 })
