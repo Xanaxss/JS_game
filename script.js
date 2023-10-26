@@ -1,8 +1,9 @@
-let frames = 30;
+// let frames = 30;
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 size = [1480, 920]
+
 
 
 
@@ -13,8 +14,8 @@ spaceshipY = size[1]-spaceshipHeight/0.5;
 spaceshipSpeed = 2;
 
 
-var sprite = new Image();
-sprite.src = './img/boom.png'
+// var sprite = new Image();
+// sprite.src = './img/boom.png'
 
 ////////////////////////////////////////////
 
@@ -45,12 +46,15 @@ function background() {
  
 
 ////////////////////////////////////////////
-
+/// DOMContentLoaded означает, что внутренняя функция будет исполнятся только после загрузки всех компонентов на странице
   window.addEventListener('DOMContentLoaded', function () {
     canvas.width = size[0];
     canvas.height = size[1];
 
-    
+    ///тест добавления игрока в таблицу рекордов
+const playerName = "Игрок 1";
+const playerScore = 1000;
+addScoreToLeaderboard(playerName, playerScore);
     setInterval(draw,10)
 
 
@@ -194,6 +198,7 @@ class Enemy extends Sprite {
       y: options.y,
       numberOfFrames: options.numberOfFrames,
       ticksPerFrame: options.ticksPerFrame,
+      isDraw: false
   })
   this.direction = 1;
   this.shoot = new Sprite({
@@ -224,7 +229,7 @@ class Enemy extends Sprite {
     {
       this.shoot.x = this.x + this.width/2;
       this.shoot.y = this.y + this.width;
-      isDraw = true;
+      this.isDraw = true;
   }
   else {
     this.shoot.y += this.shoot.speed;
@@ -315,6 +320,7 @@ let Enm = new Enemy({
   x: 100,
   y: 100,
   numberOfFrames: 1, 
+  isDraw: false
 })
 
 let Enm2 = new Enemy({
@@ -328,3 +334,21 @@ let Enm2 = new Enemy({
 })
 
 Enemies =[Enm, Enm2]
+
+
+////////////////////////Добавление рещультатов в таблицу/////////////////////////////////////
+const leaderboardTable = document.getElementById('leaderboard');
+function addScoreToLeaderboard(playerName, score) {
+  const leaderboardTable = document.getElementById('leaderboard');
+  const leaderboardBody = leaderboardTable.getElementsByTagName('tbody')[0];
+
+  const newRow = leaderboardBody.insertRow();
+  const nameCell = newRow.insertCell(0);
+  const scoreCell = newRow.insertCell(1);
+
+  nameCell.textContent = playerName;
+  scoreCell.textContent = score;
+}
+
+
+
