@@ -1,10 +1,11 @@
 // let frames = 30;
 
+
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 size = [1480, 920]
 
-
+livesCount = 3;
 
 
 spaceshipWidth = 200/4;
@@ -14,18 +15,6 @@ spaceshipY = size[1]-spaceshipHeight/0.5;
 spaceshipSpeed = 2;
 
 
-// var sprite = new Image();
-// sprite.src = './img/boom.png'
-
-////////////////////////////////////////////
-
-
-// spaceship.onload = function () {
-//   ctx.drawImage(spaceship, spaceshipX, spaceshipY, spaceshipWidth,spaceshipWidth)
-// }
-
-
-////////////////////////////////////////////
 
 
 pressedButtons = {
@@ -55,12 +44,18 @@ function background() {
 const playerName = "Игрок 1";
 const playerScore = 1000;
 addScoreToLeaderboard(playerName, playerScore);
+
+
+
     setInterval(draw,10)
 
 
-    function draw(){
 
-    game()
+    function draw(){
+      if (livesCount > 0) {
+        game()
+      }
+      else gameOver(); 
     }
     
 
@@ -104,6 +99,33 @@ addScoreToLeaderboard(playerName, playerScore);
     Enm.Shoot();
     Enm2.move();
     Enm2.Shoot();
+
+
+
+  }
+
+//////////Game Over//////////////////////////////////////////////////////////////////////
+
+  function gameOver() {
+    
+    ship.isDraw = false;
+    Enm.isDraw = false;
+    Enm2.isDraw = false;
+    Enm.disable_shoot();
+    Enm2.disable_shoot();
+
+    
+    ctx.fillStyle = "Black";
+    ctx.fillRect(0,0,size[0], size[1]);
+    ctx.font = "75px GameOver";
+    ctx.fillStyle = "White";
+    ctx.fillText("GAME OVER" , (size[0]-75*"GAMEOVER".length)/2, size[1]/2);
+
+    GameOverHeart.isDraw = true;
+
+
+
+
   }
 
 
@@ -111,7 +133,7 @@ addScoreToLeaderboard(playerName, playerScore);
 
 
 class Sprite {
-  
+  // all = [];
     constructor(options) {
         this.ctx = options.ctx;
         this.image = new Image();
@@ -125,9 +147,14 @@ class Sprite {
         this.width = options.width;
         this.height = options.height;
 
-
-        this.isDraw = options.isDraw || true;
+        if (options.isDraw == undefined) {
+          this.isDraw = true;
+        }
+        else {
+          this.isDraw = options.isDraw;
+        }
         this.speed = options.speed;
+        // this.all.push(this);
         this.start();
     }
 /// update() обновляет значения спрайта, таких как текущий кадр
@@ -179,7 +206,7 @@ class Sprite {
 
             window.requestAnimationFrame(loop);
         }
-
+        
         window.requestAnimationFrame(loop);
     }
 }
@@ -198,7 +225,6 @@ class Enemy extends Sprite {
       y: options.y,
       numberOfFrames: options.numberOfFrames,
       ticksPerFrame: options.ticksPerFrame,
-      isDraw: false
   })
   this.direction = 1;
   this.shoot = new Sprite({
@@ -210,7 +236,7 @@ class Enemy extends Sprite {
     y: this.y + this.width,
     numberOfFrames: 3,
     ticksPerFrame: 8,
-    isDraw: false,
+    isDraw: true,
     speed: 2
   })
   
@@ -229,17 +255,28 @@ class Enemy extends Sprite {
     {
       this.shoot.x = this.x + this.width/2;
       this.shoot.y = this.y + this.width;
-      this.isDraw = true;
+      this.shoot.isDraw = true;
   }
   else {
     this.shoot.y += this.shoot.speed;
+    if (livesCount > 0 && this.shoot.isCollision([ship])) {
+      lives[livesCount-1].isDraw = false;
+      livesCount--;
+    }
     if (this.shoot.isCollision([ship]) ||
     this.shoot.y > size[1]) {
       this.shoot.x = this.x + this.width/2;
       this.shoot.y = this.y + this.width;
+     
   }
+
+
 }
 
+
+  }
+  disable_shoot() {
+    this.shoot.isDraw = false;
   }
 
 }
@@ -260,7 +297,8 @@ class Player extends Sprite {
       y: options.y,
       numberOfFrames: options.numberOfFrames,
       ticksPerFrame: options.ticksPerFrame,
-      speed: options.speed
+      speed: options.speed,
+      isDraw: options.isDraw
     })
     this.shoot = new Sprite({
       ctx: canvas.getContext('2d'),
@@ -271,7 +309,8 @@ class Player extends Sprite {
       y: this.y,
       numberOfFrames: 3,
       ticksPerFrame: 8,
-      speed: 2
+      speed: 2,
+      isDraw: true
     })
     this.shoot.isDraw = false;
 
@@ -306,9 +345,50 @@ let ship = new Player({
   y: spaceshipY,
   numberOfFrames: 4,
   ticksPerFrame: 8,
-  speed: 4
+  speed: 4,
+  isDraw: true
 })
 
+
+
+
+/////Сердечки////////////////////////////////////////
+let lives = [new Sprite({
+  ctx: canvas.getContext('2d'),
+  imgSrc: './img/heart.png',
+  width: 974,
+  height: 93,
+  x: 10,
+  y: 10,
+  numberOfFrames: 10,
+  ticksPerFrame: 6,
+  speed: 4,
+  isDraw: true
+}), 
+new Sprite({
+  ctx: canvas.getContext('2d'),
+  imgSrc: './img/heart.png',
+  width: 974,
+  height: 93,
+  x: 110,
+  y: 10,
+  numberOfFrames: 10,
+  ticksPerFrame: 6,
+  speed: 4,
+  isDraw: true
+}),
+new Sprite({
+  ctx: canvas.getContext('2d'),
+  imgSrc: './img/heart.png',
+  width: 974,
+  height: 93,
+  x: 210,
+  y: 10,
+  numberOfFrames: 10,
+  ticksPerFrame: 6,
+  speed: 4,
+  isDraw: true
+})]
 
 
 ///////Test enemies///////////////////////////////
@@ -319,8 +399,9 @@ let Enm = new Enemy({
   height: 100,
   x: 100,
   y: 100,
-  numberOfFrames: 1, 
-  isDraw: false
+  numberOfFrames: 1,
+  ticksPerFrame: 6,
+  isDraw: true
 })
 
 let Enm2 = new Enemy({
@@ -331,9 +412,29 @@ let Enm2 = new Enemy({
   x: 800,
   y: 100,
   numberOfFrames: 1, 
+  ticksPerFrame: 6,
+  isDraw: true
 })
 
 Enemies =[Enm, Enm2]
+
+
+////////gameOver_heart_////////////////
+
+let GameOverHeart = new Sprite({
+  ctx: canvas.getContext('2d'),
+  imgSrc: './img/heart_gameover.png',
+  width: 3631,
+  height: 100,
+  x: size[0]/2,
+  y: size[1]/2,
+  numberOfFrames: 30, 
+  ticksPerFrame: 6,
+  isDraw: false
+})
+
+
+
 
 
 ////////////////////////Добавление рещультатов в таблицу/////////////////////////////////////
@@ -349,6 +450,5 @@ function addScoreToLeaderboard(playerName, score) {
   nameCell.textContent = playerName;
   scoreCell.textContent = score;
 }
-
 
 

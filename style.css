@@ -56,3 +56,7 @@ text-align: right;
     
 }
 
+@font-face {
+    font-family: 'GameOver';
+    src: url('./SEGA.TTF');
+}
