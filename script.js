@@ -22,6 +22,13 @@ pressedButtons = {
 }
 
 
+
+function playAudio() {
+  var audio = new Audio('./main_theme.mp3');
+  audio.volume = 0.5;
+  audio.play();
+}
+
 ////////////////////////////////////////////
 
 const bacground_canvas = new Image();
@@ -46,8 +53,8 @@ const playerScore = 1000;
 addScoreToLeaderboard(playerName, playerScore);
 
 
-
-    setInterval(draw,10)
+    playAudio();
+    setInterval(draw,10);
 
 
 
@@ -100,7 +107,9 @@ addScoreToLeaderboard(playerName, playerScore);
     Enm2.move();
     Enm2.Shoot();
 
+    if (lives <= 0) {
 
+    }
 
   }
 
@@ -262,6 +271,9 @@ class Enemy extends Sprite {
     if (livesCount > 0 && this.shoot.isCollision([ship])) {
       lives[livesCount-1].isDraw = false;
       livesCount--;
+      boom.isDraw = true;
+      boom.x = ship.x;
+      boom.y = ship.y;
     }
     if (this.shoot.isCollision([ship]) ||
     this.shoot.y > size[1]) {
@@ -424,14 +436,28 @@ Enemies =[Enm, Enm2]
 let GameOverHeart = new Sprite({
   ctx: canvas.getContext('2d'),
   imgSrc: './img/heart_gameover.png',
-  width: 3631,
-  height: 100,
-  x: size[0]/2,
+  width: 6158,
+  height: 124,
+  x: size[0]/2-6158/48,
   y: size[1]/2,
-  numberOfFrames: 30, 
-  ticksPerFrame: 6,
+  numberOfFrames: 48, 
+  ticksPerFrame: 3,
   isDraw: false
 })
+
+
+let boom = new Sprite({
+  ctx: canvas.getContext('2d'),
+  imgSrc: './img/boom.png',
+  width: 800,
+  height: 61,
+  x: 300,
+  y: 300,
+  numberOfFrames: 13, 
+  ticksPerFrame: 3,
+  isDraw: false
+})
+
 
 
 
