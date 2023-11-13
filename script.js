@@ -1,4 +1,4 @@
-// let frames = 30;
+ // let frames = 30;
 
 
 let isGamer = false; // Флаг, показывающий, запущена ли игра
@@ -125,7 +125,7 @@ addScoreToLeaderboard(playerName, playerScore);
     if (pressedButtons["space"]) { 
       if (!ship.isShooting){ // если нажали пробел и стрельба еще не начиналась
       ship.isShooting = true;
-      ship.Shoot();
+      if (!ship.stop)ship.Shoot();
     ship.interval = setInterval(function () { if (!ship.stop)ship.Shoot()}, 500); // циклическая стрельба
       }
     }
@@ -344,8 +344,8 @@ class Bullet extends Sprite {
     }
 
     if (this.isCollision([Enm2])) {//пуля столкнулась с врагом
-      Enm2.x = -400;
-      Enm2.y = -400;
+      Enm2.x = undefined;
+      Enm2.y = undefined;
 
 
       boom.frameIndex = 0;
