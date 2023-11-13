@@ -32,12 +32,12 @@ spaceshipX = size[0]/2-spaceshipWidth/2;
 spaceshipY = size[1]-spaceshipHeight/0.5;
 spaceshipSpeed = 2;
 
-nulled = false;
+nulled = false; // переменная, отвечающая за то были ли удалены все объекты с поля
 
 
 pressedButtons = {
   "a": false, "d": false, "space": false
-}
+} // нажатые кнопки
 
 
 
@@ -60,7 +60,9 @@ function background() {
  
 
 ////////////////////////////////////////////
-/// DOMContentLoaded означает, что внутренняя функция будет исполнятся только после загрузки всех компонентов на странице
+/// DOMContentLoaded означает, что внутренняя
+/// функция будет исполнятся только после загрузки
+/// всех компонентов на странице
   window.addEventListener('DOMContentLoaded', function () {
     canvas.width = size[0];
     canvas.height = size[1];
@@ -71,13 +73,12 @@ const playerScore = 1000;
 addScoreToLeaderboard(playerName, playerScore);
 
 
-    // playAudio();
-    setInterval(draw,10);
+    setInterval(draw,10);//запускает покадровую отрисовку
 
 
     function draw(){
       if (livesCount > 0) {
-        game()
+        game()//логика игры
       }
       else gameOver(); 
     }
@@ -117,24 +118,24 @@ addScoreToLeaderboard(playerName, playerScore);
 
     if (pressedButtons["a"]) ship.x -= ship.speed;
     if (pressedButtons["d"]) ship.x += ship.speed;
-    if (pressedButtons["space"]) {
-      if (!ship.isShooting){
+    if (pressedButtons["space"]) { 
+      if (!ship.isShooting){ // если нажали пробел и стрельба еще не начиналась
       ship.isShooting = true;
       ship.Shoot();
-    ship.interval = setInterval(function () { if (!ship.stop)ship.Shoot()}, 500);
+    ship.interval = setInterval(function () { if (!ship.stop)ship.Shoot()}, 500); // циклическая стрельба
       }
     }
-    else {
+    else { // это если мы отпустили пробел и нужно прекратить стрельбу
       if (ship.isShooting){
         ship.isShooting = false;
-        clearInterval(ship.interval);
+        clearInterval(ship.interval); // прекращает цикл
         }
     }
 
 
-      Enm.move();
+    Enm.move();
     Enm2.move();
-    CheckBoom();
+    CheckBoom(); // проверяет произошел ли взрыв, после чего убирает с поля
   }
 
 
@@ -147,7 +148,7 @@ all = []
 
   function gameOver() {
 
-    if (!nulled){
+    if (!nulled){ // если объекты не были еще удалены, то удали их
     for(var i=0; i < all.length; i++){
       all[i].delete();
       GameOverHeart.stop = false;
@@ -162,7 +163,7 @@ all = []
     ctx.fillStyle = "White";
     ctx.fillText("GAME OVER" , (size[0]-75*"GAMEOVER".length)/2, size[1]/2);
 
-    GameOverHeart.isDraw = true;
+    GameOverHeart.isDraw = true; // огонек в конце игры
 
 
 
@@ -180,16 +181,17 @@ class Sprite {
         this.ctx = options.ctx;
         this.image = new Image();
         this.image.src = options.imgSrc;
-        this.frameIndex = 0;
-        this.tickCount = 0;
-        this.ticksPerFrame = options.ticksPerFrame || 0;
-        this.numberOfFrames = options.numberOfFrames || 1;
+        this.frameIndex = 0;//текущий фрейм
+        this.tickCount = 0; // счетчик тиков
+        this.ticksPerFrame = options.ticksPerFrame || 0; // тиков в кадре
+        this.numberOfFrames = options.numberOfFrames || 1; // кол-во кадров
         this.x = options.x;
         this.y = options.y;
         this.width = options.width;
         this.height = options.height;
 
 
+        // isDraw - отрисовывается ли объект
         if (options.isDraw == undefined) {
           this.isDraw = true;
         }
@@ -199,10 +201,10 @@ class Sprite {
         this.speed = options.speed;
         // this.all.push(this);
 
-        this.isLastFrame = false;
-        this.stop = false;
-        all.push(this);
-        this.start();
+        this.isLastFrame = false; // отрисовался ли в данный момент последний кадр
+        this.stop = false; // нужно ли остановить отрисовку спрайта (насовсем)
+        all.push(this); // добавить в список спрайтов
+        this.start(); // запуск спрайта
 
 
         
@@ -260,14 +262,14 @@ class Sprite {
     start() {
         let loop = () => {
           if (!this.stop) {
-            this.update();
-            this.render();
+            this.update(); // обновить значения
+            this.render(); // отрисовать
 /*            if (this instanceof Bullet) this.Shoot();*/
-              window.requestAnimationFrame(loop);
+              window.requestAnimationFrame(loop); // запросить след. кадр
           }
         }
 
-        window.requestAnimationFrame(loop);
+        window.requestAnimationFrame(loop); // стартовый запуск цикла выше
     }
 }
 
@@ -287,7 +289,7 @@ class Bullet extends Sprite {
       speed: options.speed,
       isDraw: options.isDraw
     })
-      this.direction = options.direction;
+      this.direction = options.direction; // направление движения пули
   }
 
   Shoot() {
@@ -307,7 +309,7 @@ class Bullet extends Sprite {
       boom.y = ship.y;
     }
 
-    if ( this.isCollision([Enm])) {
+    if ( this.isCollision([Enm])) {//пуля столкнулась с врагом
       Enm.x = -400;
       Enm.y = -400;
       boom.frameIndex = 0;
@@ -315,10 +317,10 @@ class Bullet extends Sprite {
       boom.x = Enm.x;
       boom.y = Enm.y;
 
-      Enm.stop = true;
+      Enm.stop = true;//убрать объект
     }
 
-    if (this.isCollision([Enm2])) {
+    if (this.isCollision([Enm2])) {//пуля столкнулась с врагом
       Enm2.x = -400;
       Enm2.y = -400;
 
@@ -331,7 +333,7 @@ class Bullet extends Sprite {
       Enm2.stop = true;
     }
     if (this.isCollision([ship, Enm, Enm2]) ||
-    this.y > size[1] || this.y < 0) {
+    this.y > size[1] || this.y < 0) {//если вышел за поле или врезался в кого-то
       this.delete();
       this.x = -400;
       this.y = -400;  
@@ -360,7 +362,7 @@ class Enemy extends Sprite {
       isDraw: options.isDraw
     })
       this.direction = 1;
-      setInterval(() => {
+      setInterval(() => { // запуск стрельбы врага
         if (!this.stop) this.Shoot();
       }, 500);
   
@@ -369,8 +371,10 @@ class Enemy extends Sprite {
 
 
   move() {
-    if (this.x + this.width > size[0] || this.x < 0 || this.isCollision(Enemies)) this.direction *= -1;
-    this.x += 3*this.direction;
+    if (this.x + this.width > size[0] ||
+      this.x < 0 ||
+      this.isCollision(Enemies)) this.direction *= -1;
+    this.x += 3*this.direction; // движение врага
   }
 
   Shoot() {
@@ -396,9 +400,6 @@ class Enemy extends Sprite {
 }
 
 
-  disable_shoot() {
-    this.shoot.isDraw = false;
-  }
 
 }
 
@@ -455,7 +456,7 @@ class Player extends Sprite {
       direction: -1
     }
     )
-    setInterval(function() {
+    setInterval(function() { // запуск стрельбы
       bullet.Shoot();
     }, 10);
 
