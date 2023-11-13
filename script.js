@@ -78,7 +78,11 @@ addScoreToLeaderboard(playerName, playerScore);
 
     function draw(){
       if (livesCount > 0) {
-        game()//логика игры
+        game()//логика игры 
+        if(Enm.stop == true && Enm2.stop == true){
+          Victory()
+        }
+          
       }
       else gameOver(); 
     }
@@ -164,12 +168,31 @@ all = []
     ctx.fillText("GAME OVER" , (size[0]-75*"GAMEOVER".length)/2, size[1]/2);
 
     GameOverHeart.isDraw = true; // огонек в конце игры
-
-
-
-
   }
 
+
+  /////////////// Победа, при убийстве всех игроков/////////////////
+  function Victory(){
+
+    if (!nulled){ // если объекты не были еще удалены, то удали их
+      for(var i=0; i < all.length; i++){
+        all[i].delete();
+        GameOverHeart.stop = false;
+      }
+      nulled = true;
+    }
+    
+  
+    ctx.fillStyle = "Black";
+    ctx.fillRect(0,0,size[0], size[1]);
+    ctx.font = "75px GameOver"; //название шрифта берется с CSS
+    ctx.fillStyle = "White";
+    ctx.fillText("YOU WIN" , (size[0]-75*"YOU WIN".length)/2+50, size[1]/2)-50;
+
+    GameOverHeart.isDraw = true; 
+
+    
+  }
 
 ////////////////////Sprite///////////////////////////////////////////////////////
 

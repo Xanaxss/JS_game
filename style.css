@@ -61,12 +61,17 @@ text-align: right;
     src: url('./SEGA.TTF');
 }
 
-.menu {
+#startButton {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
+    border-radius: 15px;
+    font-family: 'GameOver';
+    background-color: black;
+    color: white;
+    padding: 20px 20px 20px 20px;
 }
 
 button {
