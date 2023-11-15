@@ -61,6 +61,11 @@ text-align: right;
     src: url('./SEGA.TTF');
 }
 
+@font-face {
+    font-family: 'ScoreShrift';
+    src: url('./Score.ttf');
+}
+
 #startButton {
     position: absolute;
     top: 50%;

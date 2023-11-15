@@ -1,23 +1,20 @@
  // let frames = 30;
 
 
-let isGamer = false; // Флаг, показывающий, запущена ли игра
+let isGame = false; // Флаг, показывающий, запущена ли игра
 let gameInterval; // Переменная для хранения идентификатора интервала
 
+let score = 0;
+let win_score = 3000;
+
+let stepToSpeedUp = 500; // каждые n очков будет увеличиваться скорость стрельбы
+let deltaScore = 0; // переменная, служащая для отслеживания разницы счета и stepToSpeedUp
 // Основное меню
 const menu = document.getElementById('menu');
 const startButton = document.getElementById('startButton');
 
 // Обработчики событий для кнопок
-startButton.addEventListener('click', startGame);
 
-// Функция начала игры
-function startGame() {
-    isGamer = true;
-    menu.style.display = 'none';
-    playAudio();
-    gameInterval = setInterval(draw, 10);
-}
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -30,20 +27,20 @@ spaceshipWidth = 200/4;
 spaceshipHeight = 80;
 spaceshipX = size[0]/2-spaceshipWidth/2;
 spaceshipY = size[1]-spaceshipHeight/0.5;
-spaceshipSpeed = 2;
 
 nulled = false; // переменная, отвечающая за то были ли удалены все объекты с поля
 
 
 pressedButtons = {
-  "a": false, "d": false, "space": false
+  "a": false, "d": false, "w": false, "s": false, "space": false, "LKM": false
 } // нажатые кнопки
 
 
-
+let audio = new Audio('./main_theme.mp3');
 function playAudio() {
-  var audio = new Audio('./main_theme.mp3');
-  audio.volume = 0.5;
+
+  audio.volume = 0.2;
+  audio.loop = true;
   audio.play();
 }
 
@@ -58,7 +55,11 @@ function background() {
     ctx.drawImage(bacground_canvas,0 , 0, size[0], size[1]);
 }
  
+function Menu(){
+  background();
 
+  ctx.font = "75px GameOver"; //название шрифта берется с CSS
+}
 ////////////////////////////////////////////
 /// DOMContentLoaded означает, что внутренняя
 /// функция будет исполнятся только после загрузки
@@ -66,25 +67,39 @@ function background() {
   window.addEventListener('DOMContentLoaded', function () {
     canvas.width = size[0];
     canvas.height = size[1];
+    Menu();
 
     ///тест добавления игрока в таблицу рекордов
 const playerName = "Игрок 1";
 const playerScore = 1000;
 addScoreToLeaderboard(playerName, playerScore);
+startButton.addEventListener('click', startGame);
 
-
+// Функция начала игры
+function startGame() {
+    isGame = true;
+    menu.style.display = 'none';
+    playAudio();
+    startBackground.isDraw = false;
     setInterval(draw,10);//запускает покадровую отрисовку
+}
+
+
 
 
     function draw(){
-      if (livesCount > 0) {
-        game()//логика игры 
-        if(Enm.stop == true && Enm2.stop == true){
-          Victory()
+      if (isGame) {
+      if (livesCount > 0 && isGame) {
+        game()//логика игры
+        if(score >= win_score){
+          Victory();
         }
-          
       }
-      else gameOver(); 
+      else {
+        if (score < win_score) gameOver();
+        else Victory();
+      }
+    } 
     }
     
 
@@ -94,35 +109,92 @@ addScoreToLeaderboard(playerName, playerScore);
 
   function game() {
 
-    background();
+    background(); //фон
+    CheckKeys();// проверяет нажатые клавиши
+    UpdateShipPosition();// Обновляет положение корабля на поле
+    ShootingController(); // стрельба противника
+    UpdateShootingEnemies(); // изменяет скорость стрельбы противников
 
-      window.onkeydown = function(event)
-      {
-      if (String(event.key) == "a") {
-        pressedButtons["a"] = true;
-      }
-      if (String(event.key) == "d") {
-        pressedButtons["d"] = true;
-      }
-      if (String(event.key) == " ") {
-        pressedButtons["space"] = true;
-      }
-    }
-    window.onkeyup = function(e) {
-      if (String(e.key) == "a") {
-        pressedButtons["a"] = false;
-      }
-      if (String(e.key) == "d") {
-        pressedButtons["d"] = false;
-      }
-      if (String(e.key) == " ") {
-        pressedButtons["space"] = false;
-      }
-    }
+    Enm.move();
+    Enm2.move();
+    CheckBoom(); // проверяет произошел ли взрыв, после чего убирает с поля
+    Score();// вывод счета
+  }
 
-    if (pressedButtons["a"]) ship.x -= ship.speed;
-    if (pressedButtons["d"]) ship.x += ship.speed;
-    if (pressedButtons["space"]) { 
+
+  function CheckBoom() {
+    if (boom.isDraw && boom.isLastFrame) boom.isDraw = false;
+  }
+
+  function UpdateShipPosition() {
+    if (ship.x >= 0) {
+      if (pressedButtons["a"]) ship.x -= ship.speed;
+    }
+    if (ship.x <= size[0] - ship.width/ship.numberOfFrames) {
+      if (pressedButtons["d"]) ship.x += ship.speed;
+    }
+  
+    if (ship.y > 500) {
+      if (pressedButtons["w"]) ship.y -= 2;
+    }
+    if (ship.y + ship.height < size[1]) {
+      if (pressedButtons["s"]) ship.y += 1.5;
+    }
+  }
+
+  function CheckKeys() {
+
+    canvas.addEventListener('mousedown', function(event) {
+      if (event.button === 0) {
+        pressedButtons["LKM"] = true;
+      }
+  });
+  canvas.addEventListener('mouseup', function(event) {
+    if (event.button === 0) {
+      pressedButtons["LKM"] = false;
+    }
+});
+    window.onkeydown = function(event)
+    {
+    if (String(event.key).toLowerCase() == "a") {
+      pressedButtons["a"] = true;
+    }
+    if (String(event.key).toLowerCase() == "d") {
+      pressedButtons["d"] = true;
+    }
+    if (String(event.key).toLowerCase() == "w") {
+      pressedButtons["w"] = true;
+    }
+    if (String(event.key).toLowerCase() == "s") {
+      pressedButtons["s"] = true;
+    }
+    if (String(event.key).toLowerCase() == " ") {
+      pressedButtons["space"] = true;
+    }
+  }
+  window.onkeyup = function(e) {
+    if (String(e.key).toLowerCase() == "a") {
+      pressedButtons["a"] = false;
+    }
+    if (String(e.key).toLowerCase() == "d") {
+      pressedButtons["d"] = false;
+    }
+    if (String(e.key).toLowerCase() == "w") {
+      pressedButtons["w"] = false;
+    }
+    if (String(e.key).toLowerCase() == "s") {
+      pressedButtons["s"] = false;
+    }
+    if (String(e.key).toLowerCase() == " ") {
+      pressedButtons["space"] = false;
+    }
+  }
+
+  
+  }
+
+  function ShootingController() {
+    if (pressedButtons["space"] || pressedButtons["LKM"]) {
       if (!ship.isShooting){ // если нажали пробел и стрельба еще не начиналась
       ship.isShooting = true;
       if (!ship.stop)ship.Shoot();
@@ -135,23 +207,30 @@ addScoreToLeaderboard(playerName, playerScore);
         clearInterval(ship.interval); // прекращает цикл
         }
     }
-
-
-    Enm.move();
-    Enm2.move();
-    CheckBoom(); // проверяет произошел ли взрыв, после чего убирает с поля
   }
 
-
-  function CheckBoom() {
-    if (boom.isDraw && boom.isLastFrame) boom.isDraw = false;
+  function UpdateShootingEnemies() {
+    if (deltaScore == stepToSpeedUp) {
+      deltaScore = 0;
+      Enemies.forEach(enemy => {
+        enemy.shootFrequency *= 0.8;
+        enemy.SetSpeedShooting(enemy.shootFrequency);
+      });
+    }
+  }
+  function Score() {
+    let fontsize = 90;
+    scoreString = "Score " + String(score);
+    ctx.font = fontsize + "px ScoreShrift";
+    ctx.fillStyle = "White";
+    ctx.fillText(scoreString, size[0]-fontsize*6, fontsize);
   }
 //////////Game Over//////////////////////////////////////////////////////////////////////
 
 all = []
 
   function gameOver() {
-
+    isGame = false;
     if (!nulled){ // если объекты не были еще удалены, то удали их
     for(var i=0; i < all.length; i++){
       all[i].delete();
@@ -159,7 +238,6 @@ all = []
     }
     nulled = true;
   }
-    
 
     ctx.fillStyle = "Black";
     ctx.fillRect(0,0,size[0], size[1]);
@@ -168,6 +246,8 @@ all = []
     ctx.fillText("GAME OVER" , (size[0]-75*"GAMEOVER".length)/2, size[1]/2);
 
     GameOverHeart.isDraw = true; // огонек в конце игры
+    audio.pause();
+    Score();
   }
 
 
@@ -190,6 +270,8 @@ all = []
     ctx.fillText("YOU WIN" , (size[0]-75*"YOU WIN".length)/2+50, size[1]/2)-50;
 
     GameOverHeart.isDraw = true; 
+
+    Score();
 
     
   }
@@ -227,7 +309,7 @@ class Sprite {
         this.isLastFrame = false; // отрисовался ли в данный момент последний кадр
         this.stop = false; // нужно ли остановить отрисовку спрайта (насовсем)
         all.push(this); // добавить в список спрайтов
-        this.start(); // запуск спрайта
+        this.start();
 
 
         
@@ -327,39 +409,62 @@ class Bullet extends Sprite {
       livesCount--;
 
       boom.frameIndex = 0;
-      boom.isDraw = true;
       boom.x = ship.x;
       boom.y = ship.y;
+      boom.isDraw = true;
+
     }
 
     if ( this.isCollision([Enm])) {//пуля столкнулась с врагом
-      Enm.x = -400;
-      Enm.y = -400;
+      //бим бим бам бам
       boom.frameIndex = 0;
-      boom.isDraw = true;
-      boom.x = Enm.x;
+      boom.x = Enm.x + Enm.width/Enm.numberOfFrames; // находим середину вражеского корабля, длину мы делим на кол-во кадров,
+      //потому что исходная длина включает в себя длину с каждым кадром 
       boom.y = Enm.y;
+      boom.isDraw = true;
 
-      Enm.stop = true;//убрать объект
+      /// после попадания снаряда корабль меняет рандомно  свое положение
+      Enm.x = Math.random() * (size[0] + 1 - Enm.width/Enm.numberOfFrames);
+      while (Enm.isCollision([Enm2])) {
+        Enm.x = Math.random() * (size[0] + 1 - Enm.width/Enm.numberOfFrames);
+      }
+
+      // уничтожение снаряда
+      this.x = undefined;
+      this.y = undefined;
+      this.delete();
+
+      score += 100;
+      deltaScore += 100;
     }
 
     if (this.isCollision([Enm2])) {//пуля столкнулась с врагом
-      Enm2.x = undefined;
-      Enm2.y = undefined;
-
-
+      //бим бим бам бам
       boom.frameIndex = 0;
-      boom.isDraw = true;
-      boom.x = Enm2.x;
+      boom.x = Enm2.x + Enm2.width/Enm2.numberOfFrames;
       boom.y = Enm2.y;
+      boom.isDraw = true;
 
-      Enm2.stop = true;
+      /// после попадания снаряда корабль меняет рандомно  свое положение
+      Enm2.x = Math.random() * (size[0] + 1 - Enm2.width/Enm2.numberOfFrames);
+      while (Enm2.isCollision([Enm])) {
+        Enm2.x = Math.random() * (size[0] + 1 - Enm2.width/Enm2.numberOfFrames);
+      }
+
+      // уничтожение снаряда
+      this.x = undefined;
+      this.y = undefined;
+      this.delete();
+
+      score += 100;
+      deltaScore += 100;
     }
-    if (this.isCollision([ship, Enm, Enm2]) ||
+    if (this.isCollision([ship]) || this.isCollision([Enm]) ||
     this.y > size[1] || this.y < 0) {//если вышел за поле или врезался в кого-то
       this.delete();
-      this.x = -400;
-      this.y = -400;  
+      this.x = undefined;
+      this.y = undefined;
+      this.isDraw = false;  
       delete this;
   }
 
@@ -385,9 +490,9 @@ class Enemy extends Sprite {
       isDraw: options.isDraw
     })
       this.direction = 1;
-      setInterval(() => { // запуск стрельбы врага
-        if (!this.stop) this.Shoot();
-      }, 500);
+      this.shootFrequency = 1000; // Частота стрельбы в мс
+      this.shootInterval = null;
+      this.SetSpeedShooting(this.shootFrequency);
   
   }
 
@@ -411,19 +516,24 @@ class Enemy extends Sprite {
       numberOfFrames: 3,
       ticksPerFrame: 8,
       isDraw: true,
-      speed: 2,
+      speed: 4,
       direction: 1
     })
     setInterval(function() {
       bullet.Shoot();
-    }, 10);
-
-
+    }, 1  );
+}
+start() {
+  super.start();
 
 }
 
-
-
+SetSpeedShooting(milliseconds) {
+  if (this.shootInterval != null) clearInterval(this.shootInterval);
+  this.shootInterval = setInterval(() => { // запуск стрельбы врага
+    if (!this.stop && isGame) this.Shoot();
+  }, milliseconds);
+}
 }
 
 
@@ -475,13 +585,13 @@ class Player extends Sprite {
       numberOfFrames: 3,
       ticksPerFrame: 8,
       isDraw: true,
-      speed: 2,
+      speed: 3,
       direction: -1
     }
     )
     setInterval(function() { // запуск стрельбы
       bullet.Shoot();
-    }, 10);
+    }, 1);
 
 }
 }
@@ -496,7 +606,7 @@ let ship = new Player({
   y: spaceshipY,
   numberOfFrames: 4,
   ticksPerFrame: 8,
-  speed: 4,
+  speed: 6,
   isDraw: true
 })
 
@@ -596,7 +706,16 @@ let boom = new Sprite({
   isDraw: false
 })
 
-
+let startBackground = new Sprite({
+  ctx: canvas.getContext('2d'),
+  imgSrc: './img/bg_canvas.png',
+  width: size[0],
+  height: size[1],
+  x: 0,
+  y: 0,
+  numberOfFrames: 1,
+  isDraw: true
+})
 
 
 ////////////////////////Добавление рещультатов в таблицу/////////////////////////////////////
