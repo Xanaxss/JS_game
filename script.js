@@ -14,8 +14,6 @@ const menu = document.getElementById('menu');
 const startButton = document.getElementById('startButton');
 
 // Обработчики событий для кнопок
-
-
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 size = [1480, 920];
@@ -59,6 +57,7 @@ function Menu(){
   background();
 
   ctx.font = "75px GameOver"; //название шрифта берется с CSS
+
 }
 ////////////////////////////////////////////
 /// DOMContentLoaded означает, что внутренняя
@@ -70,9 +69,6 @@ function Menu(){
     Menu();
 
     ///тест добавления игрока в таблицу рекордов
-const playerName = "Игрок 1";
-const playerScore = 1000;
-addScoreToLeaderboard(playerName, playerScore);
 startButton.addEventListener('click', startGame);
 
 // Функция начала игры
@@ -97,6 +93,7 @@ function startGame() {
       }
       else {
         if (score < win_score) gameOver();
+
         else Victory();
       }
     } 
@@ -106,7 +103,7 @@ function startGame() {
   }, false);
 
 ////////////////////////////////////////////
-
+ // загрузка результатов в таблицу
   function game() {
 
     background(); //фон
@@ -172,6 +169,7 @@ function startGame() {
       pressedButtons["space"] = true;
     }
   }
+
   window.onkeyup = function(e) {
     if (String(e.key).toLowerCase() == "a") {
       pressedButtons["a"] = false;
@@ -219,22 +217,33 @@ function startGame() {
     }
   }
   function Score() {
-    let fontsize = 90;
+    let fontsize = 30;
     scoreString = "Score " + String(score);
     ctx.font = fontsize + "px ScoreShrift";
     ctx.fillStyle = "White";
-    ctx.fillText(scoreString, size[0]-fontsize*6, fontsize);
+    ctx.fillText(scoreString, size[0]-fontsize*12, fontsize);
+  }
+
+  // выводит счет в конце
+  function ScoreEnd() {
+    let fontsize= 40;
+    scoreString = "Your Score: " + String(score);
+    ctx.font = fontsize + "px ScoreShrift";
+    ctx.fillStyle = "White";
+    ctx.fillText(scoreString, size[0]/2 - fontsize *8, size[1] - fontsize * 7 );
   }
 //////////Game Over//////////////////////////////////////////////////////////////////////
 
 all = []
 
   function gameOver() {
+
     isGame = false;
     if (!nulled){ // если объекты не были еще удалены, то удали их
     for(var i=0; i < all.length; i++){
       all[i].delete();
       GameOverHeart.stop = false;
+
     }
     nulled = true;
   }
@@ -242,12 +251,26 @@ all = []
     ctx.fillStyle = "Black";
     ctx.fillRect(0,0,size[0], size[1]);
     ctx.font = "75px GameOver"; //название шрифта берется с CSS
+
     ctx.fillStyle = "White";
     ctx.fillText("GAME OVER" , (size[0]-75*"GAMEOVER".length)/2, size[1]/2);
 
+
     GameOverHeart.isDraw = true; // огонек в конце игры
+
     audio.pause();
-    Score();
+    ScoreEnd();
+
+    document.getElementById('reloadButton').style.display = 'inline-block';
+
+    document.getElementById('reloadButton').addEventListener('click', function(){
+      location.reload();
+    });
+    saveToLocalStorage("VictorKorneplod",score);
+
+
+    
+
   }
 
 
@@ -258,6 +281,7 @@ all = []
       for(var i=0; i < all.length; i++){
         all[i].delete();
         GameOverHeart.stop = false;
+
       }
       nulled = true;
     }
@@ -266,10 +290,12 @@ all = []
     ctx.fillStyle = "Black";
     ctx.fillRect(0,0,size[0], size[1]);
     ctx.font = "75px GameOver"; //название шрифта берется с CSS
+
     ctx.fillStyle = "White";
     ctx.fillText("YOU WIN" , (size[0]-75*"YOU WIN".length)/2+50, size[1]/2)-50;
 
     GameOverHeart.isDraw = true; 
+
 
     Score();
 
@@ -364,6 +390,7 @@ class Sprite {
       }
       return false;
     }
+
     start() {
         let loop = () => {
           if (!this.stop) {
@@ -682,9 +709,12 @@ Enemies =[Enm, Enm2]
 
 ////////gameOver_heart_////////////////
 
+
 let GameOverHeart = new Sprite({
+
   ctx: canvas.getContext('2d'),
   imgSrc: './img/heart_gameover.png',
+
   width: 6158,
   height: 124,
   x: size[0]/2-6158/48,
@@ -720,6 +750,7 @@ let startBackground = new Sprite({
 
 ////////////////////////Добавление рещультатов в таблицу/////////////////////////////////////
 const leaderboardTable = document.getElementById('leaderboard');
+
 function addScoreToLeaderboard(playerName, score) {
   const leaderboardTable = document.getElementById('leaderboard');
   const leaderboardBody = leaderboardTable.getElementsByTagName('tbody')[0];
@@ -731,3 +762,34 @@ function addScoreToLeaderboard(playerName, score) {
   nameCell.textContent = playerName;
   scoreCell.textContent = score;
 }
+
+
+function saveToLocalStorage(playerName, score) {
+  // Получаем текущие данные из localStorage
+  const leaderboardData = JSON.parse(localStorage.getItem('leaderboardData')) || [];
+
+  // Добавляем новые данные
+  leaderboardData.push({ playerName, score });
+
+  // Сохраняем обновленные данные в localStorage
+  localStorage.setItem('leaderboardData', JSON.stringify(leaderboardData));
+}
+
+// Функция для загрузки данных из localStorage при загрузке страницы
+function loadLeaderboardFromLocalStorage() {
+  const leaderboardData = JSON.parse(localStorage.getItem('leaderboardData')) || [];
+
+  // Заполняем таблицу лидеров данными из localStorage
+  leaderboardData.forEach((data) => {
+    addScoreToLeaderboard(data.playerName, data.score);
+  });
+
+}
+
+// Вызываем функцию загрузки при загрузке страницы
+window.onload = loadLeaderboardFromLocalStorage;
+
+
+
+
+
