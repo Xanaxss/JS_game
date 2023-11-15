@@ -5,8 +5,8 @@ let isGame = false; // Флаг, показывающий, запущена ли
 let gameInterval; // Переменная для хранения идентификатора интервала
 
 let score = 0;
-let win_score = 3000;
-
+let win_score = 4000;
+let percentOfBalance = 75;
 let stepToSpeedUp = 500; // каждые n очков будет увеличиваться скорость стрельбы
 let deltaScore = 0; // переменная, служащая для отслеживания разницы счета и stepToSpeedUp
 // Основное меню
@@ -74,6 +74,7 @@ startButton.addEventListener('click', startGame);
 // Функция начала игры
 function startGame() {
     isGame = true;
+    logo.isDraw = false;
     menu.style.display = 'none';
     playAudio();
     startBackground.isDraw = false;
@@ -211,7 +212,7 @@ function startGame() {
     if (deltaScore == stepToSpeedUp) {
       deltaScore = 0;
       Enemies.forEach(enemy => {
-        enemy.shootFrequency *= 0.8;
+        enemy.shootFrequency *= (percentOfBalance/100);
         enemy.SetSpeedShooting(enemy.shootFrequency);
       });
     }
@@ -283,6 +284,7 @@ all = []
         GameOverHeart.stop = false;
 
       }
+      saveToLocalStorage("VictorKorneplod",score);
       nulled = true;
     }
     
@@ -296,8 +298,14 @@ all = []
 
     GameOverHeart.isDraw = true; 
 
+    ScoreEnd();
+    audio.pause();
+    document.getElementById('reloadButton').style.display = 'inline-block';
 
-    Score();
+    document.getElementById('reloadButton').addEventListener('click', function(){
+      location.reload();
+    });
+
 
     
   }
@@ -455,6 +463,7 @@ class Bullet extends Sprite {
       while (Enm.isCollision([Enm2])) {
         Enm.x = Math.random() * (size[0] + 1 - Enm.width/Enm.numberOfFrames);
       }
+      Enm.direction = randomSign();
 
       // уничтожение снаряда
       this.x = undefined;
@@ -477,6 +486,7 @@ class Bullet extends Sprite {
       while (Enm2.isCollision([Enm])) {
         Enm2.x = Math.random() * (size[0] + 1 - Enm2.width/Enm2.numberOfFrames);
       }
+      Enm2.direction = randomSign();
 
       // уничтожение снаряда
       this.x = undefined;
@@ -500,6 +510,17 @@ class Bullet extends Sprite {
 }
 }
 
+
+function randomSign() {
+  // Генерируем случайное число от 0 до 1
+  let randomNumber = Math.random();
+  // Если число меньше 0.5, то возвращаем -1, иначе возвращаем 1
+  if (randomNumber < 0.5) {
+    return -1;
+  } else {
+    return 1;
+  }
+}
 ////////class Enemy////////////////////////////////////
 
 class Enemy extends Sprite {
@@ -742,6 +763,17 @@ let startBackground = new Sprite({
   width: size[0],
   height: size[1],
   x: 0,
+  y: 0,
+  numberOfFrames: 1,
+  isDraw: true
+})
+
+let logo = new Sprite({
+  ctx: canvas.getContext('2d'),
+  imgSrc: './img/logo.png',
+  width: 944,
+  height: 745,
+  x: (size[0] - 944)/2,
   y: 0,
   numberOfFrames: 1,
   isDraw: true
